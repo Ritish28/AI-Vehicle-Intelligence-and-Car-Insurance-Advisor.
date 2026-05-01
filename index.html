@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VehicleIQ — AI Insurance Intelligence</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<!-- ═══════════════════════════  LANDING  ═══════════════════════════ -->
+<div id="screen-landing" class="screen active">
+
+  <nav class="nav-bar">
+    <div class="nav-logo">
+      <span class="logo-icon">◈</span>
+      <span class="logo-text">VehicleIQ</span>
+    </div>
+    <div class="nav-badge">AI-Powered Insurance</div>
+  </nav>
+
+  <div class="landing-bg">
+    <div class="bg-grid"></div>
+    <div class="bg-glow glow-1"></div>
+    <div class="bg-glow glow-2"></div>
+  </div>
+
+  <main class="landing-main">
+    <div class="landing-eyebrow">
+      <span class="dot-pulse"></span>
+      Real-time vehicle intelligence
+    </div>
+
+    <h1 class="landing-headline">
+      Know your risk.<br/>
+      <em>Before you renew.</em>
+    </h1>
+
+    <p class="landing-sub">
+      Enter any Indian vehicle number for an instant AI-powered risk assessment,
+      insurance analysis, and personalised coverage recommendations.
+    </p>
+
+    <div class="input-card">
+      <div class="input-wrapper">
+        <span class="input-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </span>
+        <input
+          id="vehicle-input"
+          type="text"
+          placeholder="Enter vehicle number  ·  e.g. MH12DE1433"
+          autocomplete="off"
+          spellcheck="false"
+        />
+        <button id="fetch-btn" class="fetch-btn" onclick="fetchVehicle()">
+          <span class="btn-label">Fetch Details</span>
+          <span class="btn-arrow">→</span>
+        </button>
+      </div>
+      <div id="input-error" class="input-error hidden">Please enter a valid vehicle number</div>
+      <div class="input-samples">
+        Try:
+        <button class="sample-tag" onclick="fillSample('MH12DE1433')">MH12DE1433</button>
+        <button class="sample-tag" onclick="fillSample('DL3CAF0001')">DL3CAF0001</button>
+        <button class="sample-tag" onclick="fillSample('KA05MH2020')">KA05MH2020</button>
+      </div>
+    </div>
+
+    <div class="landing-stats">
+      <div class="stat-item">
+        <span class="stat-num">2.4M+</span>
+        <span class="stat-lbl">Vehicles Analysed</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-num">98.2%</span>
+        <span class="stat-lbl">Risk Accuracy</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-num">< 3s</span>
+        <span class="stat-lbl">Average Report Time</span>
+      </div>
+    </div>
+  </main>
+
+</div>
+
+<!-- ═══════════════════════════  LOADING  ═══════════════════════════ -->
+<div id="screen-loading" class="screen hidden">
+  <div class="loader-wrap">
+    <div class="loader-ring">
+      <svg viewBox="0 0 100 100" class="ring-svg">
+        <circle class="ring-track" cx="50" cy="50" r="42" />
+        <circle class="ring-fill"  cx="50" cy="50" r="42" />
+      </svg>
+      <span class="loader-icon">◈</span>
+    </div>
+    <div id="loader-text" class="loader-text">Fetching vehicle data…</div>
+    <div class="loader-steps">
+      <div class="lstep active" id="ls1">Vehicle Lookup</div>
+      <div class="lstep" id="ls2">Risk Analysis</div>
+      <div class="lstep" id="ls3">AI Insights</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════  DASHBOARD  ═════════════════════════ -->
+<div id="screen-dashboard" class="screen hidden">
+
+  <!-- Top bar -->
+  <header class="dash-header">
+    <button class="back-btn" onclick="goBack()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      New Search
+    </button>
+    <div class="dash-logo">
+      <span class="logo-icon">◈</span>
+      <span class="logo-text">VehicleIQ</span>
+    </div>
+    <div class="dash-meta">
+      <span id="dash-vehicle-num" class="dash-vnum"></span>
+      <span id="dash-timestamp" class="dash-ts"></span>
+    </div>
+  </header>
+
+  <div class="dash-layout">
+
+    <!-- ── LEFT COLUMN ── -->
+    <div class="dash-left">
+
+      <!-- Vehicle Info Card -->
+      <section class="card card-vehicle">
+        <div class="card-header">
+          <span class="card-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 17m-2 0a2 2 0 1 0 4 0a2 2 0 1 0-4 0"/><path d="M17 17m-2 0a2 2 0 1 0 4 0a2 2 0 1 0-4 0"/><path d="M5 17H3v-6l2-5h11l4 5h1a1 1 0 0 1 1 1v5h-2m-4 0H9"/></svg>
+          </span>
+          <h2 class="card-title">Vehicle Information</h2>
+          <span id="rc-badge" class="rc-badge">RC Active</span>
+        </div>
+        <div class="veh-model-row">
+          <div class="veh-model" id="v-model">—</div>
+          <div class="veh-year-badge" id="v-age-badge">—</div>
+        </div>
+        <div class="veh-grid">
+          <div class="veh-field">
+            <span class="vf-label">Owner</span>
+            <span class="vf-value" id="v-owner">—</span>
+          </div>
+          <div class="veh-field">
+            <span class="vf-label">Registration</span>
+            <span class="vf-value" id="v-reg">—</span>
+          </div>
+          <div class="veh-field">
+            <span class="vf-label">Fuel Type</span>
+            <span class="vf-value" id="v-fuel">—</span>
+          </div>
+          <div class="veh-field">
+            <span class="vf-label">Vehicle Class</span>
+            <span class="vf-value" id="v-class">—</span>
+          </div>
+          <div class="veh-field">
+            <span class="vf-label">Colour</span>
+            <span class="vf-value" id="v-color">—</span>
+          </div>
+          <div class="veh-field">
+            <span class="vf-label">Insurance</span>
+            <span class="vf-value" id="v-insurance">—</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Risk Analytics -->
+      <section class="card card-risk">
+        <div class="card-header">
+          <span class="card-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          </span>
+          <h2 class="card-title">Risk Analytics</h2>
+          <span id="risk-badge" class="risk-badge risk-medium">Medium</span>
+        </div>
+
+        <div class="risk-main">
+          <div class="gauge-wrap">
+            <canvas id="gaugeChart" width="220" height="120"></canvas>
+            <div class="gauge-center">
+              <span class="gauge-pct" id="gauge-pct">—</span>
+              <span class="gauge-lbl">Claim Prob.</span>
+            </div>
+          </div>
+          <div class="risk-meta">
+            <div class="risk-detail">
+              <span class="rd-label">Vehicle Age</span>
+              <span class="rd-value" id="r-age">—</span>
+            </div>
+            <div class="risk-detail">
+              <span class="rd-label">Risk Level</span>
+              <span class="rd-value" id="r-level">—</span>
+            </div>
+            <div class="risk-detail">
+              <span class="rd-label">Claim Probability</span>
+              <span class="rd-value" id="r-prob">—</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="risk-bar-wrap">
+          <div class="risk-bar-track">
+            <div id="risk-bar" class="risk-bar-fill"></div>
+          </div>
+          <div class="risk-bar-labels">
+            <span>Low</span><span>Medium</span><span>High</span>
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- ── CENTRE COLUMN ── -->
+    <div class="dash-centre">
+
+      <!-- AI Insights -->
+      <section class="card card-insights">
+        <div class="card-header">
+          <span class="card-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 6v6l4 2"/></svg>
+          </span>
+          <h2 class="card-title">AI Insights</h2>
+          <span class="ai-label">Powered by AI</span>
+        </div>
+        <div id="insights-list" class="insights-list"></div>
+      </section>
+
+      <!-- Insurance Recommendation -->
+      <section class="card card-recommend">
+        <div class="card-header">
+          <span class="card-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </span>
+          <h2 class="card-title">Recommended Plan</h2>
+        </div>
+        <div class="rec-plan-name" id="rec-plan">—</div>
+        <p class="rec-reason" id="rec-reason">—</p>
+        <div class="addons-label">Recommended Add-ons</div>
+        <div id="addons-list" class="addons-list"></div>
+      </section>
+
+      <!-- Risk Chart -->
+      <section class="card card-chart">
+        <div class="card-header">
+          <span class="card-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          </span>
+          <h2 class="card-title">Risk Trend by Age</h2>
+        </div>
+        <div class="chart-container">
+          <canvas id="riskChart"></canvas>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- ── RIGHT COLUMN — CHATBOT ── -->
+    <div class="dash-right">
+      <section class="card card-chat">
+        <div class="card-header">
+          <span class="card-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          </span>
+          <h2 class="card-title">Insurance Advisor</h2>
+          <span class="online-dot"></span>
+        </div>
+
+        <div id="chat-messages" class="chat-messages">
+          <div class="chat-msg bot">
+            <div class="msg-avatar">AI</div>
+            <div class="msg-bubble">
+              Hello! I'm your AI Car Insurance Advisor. Ask me anything about insurance policies, coverage, claims, or your vehicle's risk profile.
+            </div>
+          </div>
+        </div>
+
+        <div class="chat-quick-btns" id="quick-btns">
+          <button class="qbtn" onclick="sendQuick('What plan is best for me?')">Best plan?</button>
+          <button class="qbtn" onclick="sendQuick('Explain my risk level')">My risk</button>
+          <button class="qbtn" onclick="sendQuick('What is Zero Depreciation cover?')">Zero Dep?</button>
+          <button class="qbtn" onclick="sendQuick('How do I file a claim?')">File claim</button>
+        </div>
+
+        <div class="chat-input-row">
+          <input id="chat-input" class="chat-input" placeholder="Ask about insurance…" onkeydown="handleChatKey(event)" />
+          <button class="chat-send" onclick="sendChat()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+        </div>
+      </section>
+    </div>
+
+  </div><!-- /.dash-layout -->
+
+</div><!-- /#screen-dashboard -->
+
+<!-- API Config Modal -->
+<div id="api-notice" class="api-notice hidden">
+  <div class="notice-inner">
+    <span class="notice-icon">ℹ</span>
+    <span id="notice-text"></span>
+    <button onclick="closeNotice()" class="notice-close">×</button>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+</body>
+</html>
